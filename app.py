@@ -38,163 +38,139 @@ if "dark_mode" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
-def apply_theme():
-    if st.session_state.dark_mode:
-        overrides = """
-        <style>
-            .stApp, .main, header, .stSelectbox, .stSlider, .stButton>button {
-                background-color: #0f0f23 !important;
-                color: #e0e0e0 !important;
-            }
-            .stApp { background: #0f0f23; }
-            .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, div:not(.st-eb) {
-                color: #e0e0e0 !important;
-            }
-            .st-bb, .st-at, .st-ae, .st-af, .st-ag, .st-ah, .st-ai, .st-aj {
-                background-color: #1a1a3e !important;
-                color: #e0e0e0 !important;
-            }
-            .stSidebar .sidebar-content {
-                background-color: #0a0a1a !important;
-            }
-            section[data-testid="stSidebar"] {
-                background-color: #0a0a1a !important;
-            }
-            section[data-testid="stSidebar"] * {
-                color: #c0c0d0 !important;
-            }
-            .stDataFrame, .stTable {
-                background-color: #1a1a3e !important;
-                color: #e0e0e0 !important;
-            }
-            .st-bw, .st-bx, .st-by, .st-bz {
-                background-color: #1a1a3e !important;
-            }
-            input, textarea, select {
-                background-color: #1a1a3e !important;
-                color: #e0e0e0 !important;
-                border-color: #3a3a6e !important;
-            }
-            .st-b8, .st-b9, .st-ba {
-                color: #e0e0e0 !important;
-            }
-            .stMetric {
-                background-color: #1a1a3e !important;
-                padding: 1rem;
-                border-radius: 10px;
-                border: 1px solid #2a2a5e !important;
-            }
-            .st-bv {
-                background-color: #1a1a3e !important;
-            }
-            div[data-testid="stMetricValue"] {
-                color: #a78bfa !important;
-            }
-            div[data-testid="stMetricLabel"] {
-                color: #9ca3af !important;
-            }
-            button[kind="primary"] {
-                background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
-                border: none !important;
-                color: white !important;
-            }
-            .card {
-                background: #1a1a3e !important;
-                border: 1px solid #2a2a5e !important;
-                color: #e0e0e0 !important;
-            }
-            .card h3 { color: #a78bfa !important; }
-            .card p { color: #9ca3af !important; }
-            .prediction-box {
-                background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
-            }
-            .prediction-label { color: rgba(255,255,255,0.9) !important; }
-            .section-header { color: #a78bfa !important; }
-            .highlight-blue { color: #a78bfa !important; }
-            .howso-badge {
-                background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
-            }
-            .nav-card {
-                background: #1a1a3e !important;
-                border: 1px solid #2a2a5e !important;
-            }
-            .nav-card:hover { border-color: #7c3aed !important; }
-            .nav-card-title { color: #a78bfa !important; }
-            .nav-card-desc { color: #9ca3af !important; }
-            .insight-box {
-                background: #1a1a3e !important;
-                border-left: 4px solid #7c3aed !important;
-            }
-            .divider { border-color: #2a2a5e !important; }
-            .dataset-badge { color: #9ca3af !important; }
-        </style>
-        """
+def theme_css(is_dark):
+    if is_dark:
+        bg = "#0f0f23"
+        bg2 = "#1a1a3e"
+        bg3 = "#0a0a1a"
+        text = "#e0e0e0"
+        text2 = "#c0c0d0"
+        text3 = "#9ca3af"
+        accent = "#a78bfa"
+        accent2 = "#7c3aed"
+        border = "#2a2a5e"
+        metric_bg = "#1a1a3e"
+        metric_border = "#2a2a5e"
+        metric_val = "#a78bfa"
+        metric_lbl = "#9ca3af"
     else:
-        overrides = """
-        <style>
-            .card {
-                background: #ffffff;
-                border: 1px solid #e5e7eb;
-                border-radius: 12px;
-                padding: 1.5rem;
-                transition: all 0.2s;
-            }
-            .card h3 { color: #4f46e5; margin: 0 0 0.5rem 0; }
-            .card p { color: #6b7280; margin: 0; font-size: 0.9rem; }
-            .stMetric {
-                background: #f8f9fa;
-                padding: 1rem;
-                border-radius: 10px;
-                border: 1px solid #e9ecef;
-            }
-            .nav-card {
-                background: #ffffff;
-                border: 1px solid #e5e7eb;
-                border-radius: 12px;
-                padding: 1.2rem;
-                cursor: pointer;
-                transition: all 0.2s;
-                text-align: center;
-            }
-            .nav-card:hover {
-                border-color: #4f46e5;
-                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
-                transform: translateY(-2px);
-            }
-            .nav-card-title { color: #1a1a2e; font-weight: 600; font-size: 1rem; }
-            .nav-card-desc { color: #6b7280; font-size: 0.8rem; margin-top: 0.3rem; }
-            .insight-box {
-                background: #f0f2ff;
-                border-left: 4px solid #4f46e5;
-                padding: 1rem;
-                border-radius: 0 8px 8px 0;
-            }
-            .prediction-box {
-                background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
-                padding: 2rem;
-                border-radius: 15px;
-                color: white;
-                text-align: center;
-                box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
-            }
-            .prediction-value { font-size: 3.5rem; font-weight: 800; line-height: 1; }
-            .prediction-label { font-size: 1rem; opacity: 0.9; margin-top: 0.5rem; }
-            .section-header { font-size: 1.3rem; font-weight: 600; color: #1a1a2e; margin-top: 1rem; margin-bottom: 0.5rem; }
-            .highlight-blue { color: #4f46e5; font-weight: 600; }
-            .howso-badge {
-                display: inline-block;
-                background: linear-gradient(135deg, #4f46e5, #7c3aed);
-                color: white;
-                padding: 0.2rem 0.8rem;
-                border-radius: 20px;
-                font-size: 0.75rem;
-                font-weight: 600;
-            }
-            .divider { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
-            .dataset-badge { color: #6b7280; font-size: 0.8rem; }
-        </style>
-        """
-    st.markdown(overrides, unsafe_allow_html=True)
+        bg = "#ffffff"
+        bg2 = "#f8f9fa"
+        bg3 = "#f0f2ff"
+        text = "#1a1a2e"
+        text2 = "#4b5563"
+        text3 = "#6b7280"
+        accent = "#4f46e5"
+        accent2 = "#7c3aed"
+        border = "#e5e7eb"
+        metric_bg = "#f8f9fa"
+        metric_border = "#e9ecef"
+        metric_val = "#1a1a2e"
+        metric_lbl = "#6b757d"
+
+    return f"""
+    <style>
+        .stApp, .main, header, section[data-testid="stSidebar"] {{
+            background-color: {bg} !important;
+            color: {text} !important;
+        }}
+        section[data-testid="stSidebar"] * {{
+            color: {text2} !important;
+        }}
+        .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, li {{
+            color: {text} !important;
+        }}
+        .st-bb, .st-at, .st-ae, .st-af, .st-ag, .st-ah, .st-ai, .st-aj,
+        .st-bw, .st-bx, .st-by, .st-bz, .st-bv {{
+            background-color: {bg2} !important;
+            color: {text} !important;
+        }}
+        .stDataFrame, .stTable, .stDataFrame * {{
+            background-color: {bg2} !important;
+            color: {text} !important;
+        }}
+        input, textarea, select, .stSelectbox, .stSlider {{
+            background-color: {bg2} !important;
+            color: {text} !important;
+            border-color: {border} !important;
+        }}
+        .st-b8, .st-b9, .st-ba {{
+            color: {text} !important;
+        }}
+        div[data-testid="stMetric"] {{
+            background-color: {metric_bg} !important;
+            padding: 1rem !important;
+            border-radius: 10px !important;
+            border: 1px solid {metric_border} !important;
+        }}
+        div[data-testid="stMetricValue"] {{
+            color: {metric_val} !important;
+        }}
+        div[data-testid="stMetricLabel"] {{
+            color: {metric_lbl} !important;
+        }}
+        button[kind="primary"] {{
+            background: linear-gradient(135deg, {accent}, {accent2}) !important;
+            border: none !important;
+            color: white !important;
+        }}
+        .card {{
+            background: {bg2} !important;
+            border: 1px solid {border} !important;
+            color: {text} !important;
+            border-radius: 12px !important;
+            padding: 1.5rem !important;
+        }}
+        .card h3 {{ color: {accent} !important; margin: 0 0 0.5rem 0 !important; }}
+        .card p {{ color: {text3} !important; margin: 0 !important; font-size: 0.9rem !important; }}
+        .prediction-box {{
+            background: linear-gradient(135deg, {accent}, {accent2}) !important;
+            padding: 2rem !important;
+            border-radius: 15px !important;
+            color: white !important;
+            text-align: center !important;
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3) !important;
+        }}
+        .prediction-value {{ font-size: 3.5rem !important; font-weight: 800 !important; line-height: 1 !important; color: white !important; }}
+        .prediction-label {{ font-size: 1rem !important; opacity: 0.9 !important; margin-top: 0.5rem !important; color: rgba(255,255,255,0.9) !important; }}
+        .section-header {{ font-size: 1.3rem !important; font-weight: 600 !important; color: {accent} !important; margin-top: 1rem !important; margin-bottom: 0.5rem !important; }}
+        .highlight-blue {{ color: {accent} !important; font-weight: 600 !important; }}
+        .howso-badge {{
+            display: inline-block !important;
+            background: linear-gradient(135deg, {accent}, {accent2}) !important;
+            color: white !important;
+            padding: 0.2rem 0.8rem !important;
+            border-radius: 20px !important;
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+        }}
+        .nav-card {{
+            background: {bg2} !important;
+            border: 1px solid {border} !important;
+            border-radius: 12px !important;
+            padding: 1.2rem !important;
+            text-align: center !important;
+            transition: all 0.2s !important;
+        }}
+        .nav-card:hover {{ border-color: {accent} !important; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1) !important; transform: translateY(-2px) !important; }}
+        .nav-card-title {{ color: {accent} !important; font-weight: 600 !important; font-size: 1rem !important; }}
+        .nav-card-desc {{ color: {text3} !important; font-size: 0.8rem !important; margin-top: 0.3rem !important; }}
+        .insight-box {{
+            background: {bg3} !important;
+            border-left: 4px solid {accent} !important;
+            padding: 1rem !important;
+            border-radius: 0 8px 8px 0 !important;
+        }}
+        .divider {{ border: none !important; border-top: 1px solid {border} !important; margin: 1.5rem 0 !important; }}
+        .dataset-badge {{ color: {text3} !important; font-size: 0.8rem !important; }}
+        .st-emotion-cache-183lzff, .st-emotion-cache-1mi2ry5 {{
+            background-color: {bg} !important;
+        }}
+    </style>
+    """
+
+def apply_theme():
+    st.markdown(theme_css(st.session_state.dark_mode), unsafe_allow_html=True)
 
 def nav_card(title, desc, page_name, col):
     with col:
