@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.metrics import r2_score, mean_absolute_error, accuracy_score
+from sklearn.metrics import r2_score, accuracy_score
 import warnings
 import os
 warnings.filterwarnings('ignore')
@@ -107,7 +107,10 @@ def get_feature_ranges(df, features):
     ranges = {}
     for f in features:
         if df[f].dtype in [np.int64, np.float64]:
-            ranges[f] = {"min": float(df[f].min()), "max": float(df[f].max()), "type": "continuous"}
+            if df[f].nunique() <= 10:
+                ranges[f] = {"values": sorted(df[f].unique()), "type": "categorical"}
+            else:
+                ranges[f] = {"min": float(df[f].min()), "max": float(df[f].max()), "type": "continuous"}
         else:
             uniq = sorted(df[f].unique())
             ranges[f] = {"values": uniq, "type": "categorical"}
@@ -327,7 +330,7 @@ with st.sidebar:
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
     st.markdown("<div style='font-size:0.75rem;opacity:0.5;'>Built with Howso Engine</div>", unsafe_allow_html=True)
 
-    st.markdown("<div style='font-size:0.75rem;font-weight:600;margin-top:0.5rem;'>AI Provider</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.75rem;font-weight:600;margin-top:0.5rem;'>LLM Provider</div>", unsafe_allow_html=True)
     provider = st.selectbox("Provider", ["Mistral", "OpenAI", "Anthropic"], key="llm_provider_sel", label_visibility="collapsed")
     st.session_state.llm_provider = provider
 
@@ -639,9 +642,9 @@ elif st.session_state.page == "Compare":
 
             st.markdown("<div class='insight-box' style='margin-top:1rem;'>", unsafe_allow_html=True)
             if howso_pred is not None and mistral_pred is not None:
-                st.markdown("Both models made a prediction, but only Howso can show you <strong>why</strong>. The prediction is auditable, traceable, and backed by specific training data. Mistral gives you an answer with no way to verify, debug, or trust it.")
+                st.markdown(f"Both models made a prediction, but only Howso can show you <strong>why</strong>. The prediction is auditable, traceable, and backed by specific training data. {provider_name} gives you an answer with no way to verify, debug, or trust it.")
             else:
-                st.markdown("When both models return results, you'll see the critical difference: Howso attributes every prediction to specific data points. Mistral (like all LLMs) provides no traceability.")
+                st.markdown("When both models return results, you'll see the critical difference: Howso attributes every prediction to specific data points. LLMs provide no traceability.")
             st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.info("Adjust inputs and click Compare.")
