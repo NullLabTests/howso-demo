@@ -38,60 +38,56 @@ if "dark_mode" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
-st.session_state.dark_mode = st.checkbox("Dark Mode", value=st.session_state.dark_mode)
-
-if st.session_state.dark_mode:
-    st.markdown("""
-    <style>
-        .stApp, .main, header { background-color: #0f0f23 !important; }
-        section[data-testid="stSidebar"] { background-color: #0a0a1a !important; }
-        .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, li, .st-b8, .st-b9, .st-ba { color: #e0e0e0 !important; }
-        section[data-testid="stSidebar"] * { color: #c0c0d0 !important; }
-        input, textarea, select { background-color: #1a1a3e !important; border-color: #2a2a5e !important; color: #e0e0e0 !important; }
-        div[data-testid="stMetric"] { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; }
-        div[data-testid="stMetricValue"] { color: #a78bfa !important; }
-        div[data-testid="stMetricLabel"] { color: #9ca3af !important; }
-        button[kind="primary"] { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; border: none !important; }
-        .stDataFrame, .stTable { background: #1a1a3e !important; }
-        .stDataFrame td, .stDataFrame th { color: #e0e0e0 !important; }
-        .card { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; border-radius: 12px !important; padding: 1.5rem !important; }
-        .card h3 { color: #a78bfa !important; margin: 0 0 0.5rem 0 !important; }
-        .card p { color: #9ca3af !important; margin: 0 !important; font-size: 0.9rem !important; }
-        .prediction-box { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; padding: 2rem !important; border-radius: 15px !important; text-align: center !important; }
-        .prediction-value { font-size: 3.5rem !important; font-weight: 800 !important; line-height: 1 !important; color: white !important; }
-        .prediction-label { font-size: 1rem !important; opacity: 0.9 !important; margin-top: 0.5rem !important; color: rgba(255,255,255,0.9) !important; }
-        .section-header { font-size: 1.3rem !important; font-weight: 600 !important; color: #a78bfa !important; margin-top: 1rem !important; margin-bottom: 0.5rem !important; }
-        .highlight-blue { color: #a78bfa !important; font-weight: 600 !important; }
-        .howso-badge { display: inline-block !important; background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; color: white !important; padding: 0.2rem 0.8rem !important; border-radius: 20px !important; font-size: 0.75rem !important; font-weight: 600 !important; }
-        .nav-card { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; border-radius: 12px !important; padding: 1.2rem !important; text-align: center !important; }
-        .nav-card-title { color: #a78bfa !important; font-weight: 600 !important; font-size: 1rem !important; }
-        .nav-card-desc { color: #9ca3af !important; font-size: 0.8rem !important; margin-top: 0.3rem !important; }
-        .insight-box { background: #1a1a3e !important; border-left: 4px solid #a78bfa !important; padding: 1rem !important; border-radius: 0 8px 8px 0 !important; }
-        .divider { border: none !important; border-top: 1px solid #2a2a5e !important; margin: 1.5rem 0 !important; }
-        .dataset-badge { color: #9ca3af !important; font-size: 0.8rem !important; }
-    </style>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <style>
-        .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; }
-        .card h3 { color: #4f46e5; margin: 0 0 0.5rem 0; }
-        .card p { color: #6b7280; margin: 0; font-size: 0.9rem; }
-        .prediction-box { background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 2rem; border-radius: 15px; text-align: center; }
-        .prediction-value { font-size: 3.5rem; font-weight: 800; line-height: 1; color: white; }
-        .prediction-label { font-size: 1rem; opacity: 0.9; margin-top: 0.5rem; color: rgba(255,255,255,0.9); }
-        .section-header { font-size: 1.3rem; font-weight: 600; color: #1a1a2e; margin-top: 1rem; margin-bottom: 0.5rem; }
-        .highlight-blue { color: #4f46e5; font-weight: 600; }
-        .howso-badge { display: inline-block; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .nav-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.2rem; text-align: center; }
-        .nav-card-title { color: #1a1a2e; font-weight: 600; font-size: 1rem; }
-        .nav-card-desc { color: #6b7280; font-size: 0.8rem; margin-top: 0.3rem; }
-        .insight-box { background: #f0f2ff; border-left: 4px solid #4f46e5; padding: 1rem; border-radius: 0 8px 8px 0; }
-        .divider { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
-        .dataset-badge { color: #6b7280; font-size: 0.8rem; }
-        button[kind="primary"] { background: linear-gradient(135deg, #4f46e5, #7c3aed) !important; border: none !important; }
-    </style>
-    """, unsafe_allow_html=True)
+DARK_CSS = """
+<style>
+    .stApp, .main, header { background-color: #0f0f23 !important; }
+    section[data-testid="stSidebar"] { background-color: #0a0a1a !important; }
+    .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, li, .st-b8, .st-b9, .st-ba { color: #e0e0e0 !important; }
+    section[data-testid="stSidebar"] * { color: #c0c0d0 !important; }
+    input, textarea, select { background-color: #1a1a3e !important; border-color: #2a2a5e !important; color: #e0e0e0 !important; }
+    div[data-testid="stMetric"] { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; }
+    div[data-testid="stMetricValue"] { color: #a78bfa !important; }
+    div[data-testid="stMetricLabel"] { color: #9ca3af !important; }
+    button[kind="primary"] { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; border: none !important; }
+    .stDataFrame, .stTable { background: #1a1a3e !important; }
+    .stDataFrame td, .stDataFrame th { color: #e0e0e0 !important; }
+    .card { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; border-radius: 12px !important; padding: 1.5rem !important; }
+    .card h3 { color: #a78bfa !important; margin: 0 0 0.5rem 0 !important; }
+    .card p { color: #9ca3af !important; margin: 0 !important; font-size: 0.9rem !important; }
+    .prediction-box { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; padding: 2rem !important; border-radius: 15px !important; text-align: center !important; }
+    .prediction-value { font-size: 3.5rem !important; font-weight: 800 !important; line-height: 1 !important; color: white !important; }
+    .prediction-label { font-size: 1rem !important; opacity: 0.9 !important; margin-top: 0.5rem !important; color: rgba(255,255,255,0.9) !important; }
+    .section-header { font-size: 1.3rem !important; font-weight: 600 !important; color: #a78bfa !important; margin-top: 1rem !important; margin-bottom: 0.5rem !important; }
+    .highlight-blue { color: #a78bfa !important; font-weight: 600 !important; }
+    .howso-badge { display: inline-block !important; background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; color: white !important; padding: 0.2rem 0.8rem !important; border-radius: 20px !important; font-size: 0.75rem !important; font-weight: 600 !important; }
+    .nav-card { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; border-radius: 12px !important; padding: 1.2rem !important; text-align: center !important; }
+    .nav-card-title { color: #a78bfa !important; font-weight: 600 !important; font-size: 1rem !important; }
+    .nav-card-desc { color: #9ca3af !important; font-size: 0.8rem !important; margin-top: 0.3rem !important; }
+    .insight-box { background: #1a1a3e !important; border-left: 4px solid #a78bfa !important; padding: 1rem !important; border-radius: 0 8px 8px 0 !important; }
+    .divider { border: none !important; border-top: 1px solid #2a2a5e !important; margin: 1.5rem 0 !important; }
+    .dataset-badge { color: #9ca3af !important; font-size: 0.8rem !important; }
+</style>
+"""
+LIGHT_CSS = """
+<style>
+    .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; }
+    .card h3 { color: #4f46e5; margin: 0 0 0.5rem 0; }
+    .card p { color: #6b7280; margin: 0; font-size: 0.9rem; }
+    .prediction-box { background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 2rem; border-radius: 15px; text-align: center; }
+    .prediction-value { font-size: 3.5rem; font-weight: 800; line-height: 1; color: white; }
+    .prediction-label { font-size: 1rem; opacity: 0.9; margin-top: 0.5rem; color: rgba(255,255,255,0.9); }
+    .section-header { font-size: 1.3rem; font-weight: 600; color: #1a1a2e; margin-top: 1rem; margin-bottom: 0.5rem; }
+    .highlight-blue { color: #4f46e5; font-weight: 600; }
+    .howso-badge { display: inline-block; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .nav-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.2rem; text-align: center; }
+    .nav-card-title { color: #1a1a2e; font-weight: 600; font-size: 1rem; }
+    .nav-card-desc { color: #6b7280; font-size: 0.8rem; margin-top: 0.3rem; }
+    .insight-box { background: #f0f2ff; border-left: 4px solid #4f46e5; padding: 1rem; border-radius: 0 8px 8px 0; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
+    .dataset-badge { color: #6b7280; font-size: 0.8rem; }
+    button[kind="primary"] { background: linear-gradient(135deg, #4f46e5, #7c3aed) !important; border: none !important; }
+</style>
+"""
 
 def nav_card(title, desc, page_name, col):
     with col:
@@ -104,8 +100,6 @@ def nav_card(title, desc, page_name, col):
         if st.button(title, key=f"nav_{page_name}", use_container_width=True):
             st.session_state.page = page_name
             st.rerun()
-
-apply_theme()
 
 # ─── DATASETS ────────────────────────────────────────────────────────
 
@@ -346,7 +340,8 @@ def query_llm(features_dict, dataset_info):
 with st.sidebar:
     st.markdown("<div style='text-align:center;margin-bottom:1rem;'><h2 style='margin:0;'>Howso AI</h2><p style='font-size:0.8rem;opacity:0.6;'>Explainable AI Demo</p></div>", unsafe_allow_html=True)
 
-    st.session_state.dark_mode = st.toggle("Dark Mode", value=st.session_state.dark_mode)
+    st.session_state.dark_mode = st.checkbox("Dark Mode", value=st.session_state.dark_mode)
+    st.markdown(DARK_CSS if st.session_state.dark_mode else LIGHT_CSS, unsafe_allow_html=True)
 
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
