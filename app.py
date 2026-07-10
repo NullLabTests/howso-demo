@@ -34,7 +34,7 @@ if "llm_provider" not in st.session_state:
 st.set_page_config(page_title="Howso AI Demo", layout="wide", initial_sidebar_state="expanded")
 
 if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = False
+    st.session_state.dark_mode = True
 if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
@@ -449,7 +449,7 @@ def query_llm(features_dict, dataset_info):
 with st.sidebar:
     st.markdown("<div style='text-align:center;margin-bottom:1rem;'><h2 style='margin:0;'>Howso AI</h2><p style='font-size:0.8rem;opacity:0.6;'>Explainable AI Demo</p></div>", unsafe_allow_html=True)
 
-    st.session_state.dark_mode = st.checkbox("Dark Mode", value=st.session_state.dark_mode)
+    st.session_state.dark_mode = st.toggle("Dark Mode", value=st.session_state.dark_mode)
 
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
