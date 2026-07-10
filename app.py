@@ -33,42 +33,10 @@ if "llm_provider" not in st.session_state:
 
 st.set_page_config(page_title="Howso AI Demo", layout="wide", initial_sidebar_state="expanded")
 
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True
 if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
-DARK_CSS = """
-<style>
-    .stApp, .main, header { background-color: #0f0f23 !important; }
-    section[data-testid="stSidebar"] { background-color: #0a0a1a !important; }
-    .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, li, .st-b8, .st-b9, .st-ba { color: #e0e0e0 !important; }
-    section[data-testid="stSidebar"] * { color: #c0c0d0 !important; }
-    input, textarea, select { background-color: #1a1a3e !important; border-color: #2a2a5e !important; color: #e0e0e0 !important; }
-    div[data-testid="stMetric"] { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; }
-    div[data-testid="stMetricValue"] { color: #a78bfa !important; }
-    div[data-testid="stMetricLabel"] { color: #9ca3af !important; }
-    button[kind="primary"] { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; border: none !important; }
-    .stDataFrame, .stTable { background: #1a1a3e !important; }
-    .stDataFrame td, .stDataFrame th { color: #e0e0e0 !important; }
-    .card { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; border-radius: 12px !important; padding: 1.5rem !important; }
-    .card h3 { color: #a78bfa !important; margin: 0 0 0.5rem 0 !important; }
-    .card p { color: #9ca3af !important; margin: 0 !important; font-size: 0.9rem !important; }
-    .prediction-box { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; padding: 2rem !important; border-radius: 15px !important; text-align: center !important; }
-    .prediction-value { font-size: 3.5rem !important; font-weight: 800 !important; line-height: 1 !important; color: white !important; }
-    .prediction-label { font-size: 1rem !important; opacity: 0.9 !important; margin-top: 0.5rem !important; color: rgba(255,255,255,0.9) !important; }
-    .section-header { font-size: 1.3rem !important; font-weight: 600 !important; color: #a78bfa !important; margin-top: 1rem !important; margin-bottom: 0.5rem !important; }
-    .highlight-blue { color: #a78bfa !important; font-weight: 600 !important; }
-    .howso-badge { display: inline-block !important; background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; color: white !important; padding: 0.2rem 0.8rem !important; border-radius: 20px !important; font-size: 0.75rem !important; font-weight: 600 !important; }
-    .nav-card { background: #1a1a3e !important; border: 1px solid #2a2a5e !important; border-radius: 12px !important; padding: 1.2rem !important; text-align: center !important; }
-    .nav-card-title { color: #a78bfa !important; font-weight: 600 !important; font-size: 1rem !important; }
-    .nav-card-desc { color: #9ca3af !important; font-size: 0.8rem !important; margin-top: 0.3rem !important; }
-    .insight-box { background: #1a1a3e !important; border-left: 4px solid #a78bfa !important; padding: 1rem !important; border-radius: 0 8px 8px 0 !important; }
-    .divider { border: none !important; border-top: 1px solid #2a2a5e !important; margin: 1.5rem 0 !important; }
-    .dataset-badge { color: #9ca3af !important; font-size: 0.8rem !important; }
-</style>
-"""
-LIGHT_CSS = """
+APP_CSS = """
 <style>
     .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; }
     .card h3 { color: #4f46e5; margin: 0 0 0.5rem 0; }
@@ -294,7 +262,7 @@ def query_llm(features_dict, dataset_info):
 
     try:
         if provider == "Mistral":
-            from mistralai import Mistral
+            from mistralai.client import Mistral
             client = Mistral(api_key=key)
             response = client.chat.complete(
                 model="mistral-small-latest",
@@ -340,8 +308,7 @@ def query_llm(features_dict, dataset_info):
 with st.sidebar:
     st.markdown("<div style='text-align:center;margin-bottom:1rem;'><h2 style='margin:0;'>Howso AI</h2><p style='font-size:0.8rem;opacity:0.6;'>Explainable AI Demo</p></div>", unsafe_allow_html=True)
 
-    st.session_state.dark_mode = st.checkbox("Dark Mode", value=st.session_state.dark_mode)
-    st.markdown(DARK_CSS if st.session_state.dark_mode else LIGHT_CSS, unsafe_allow_html=True)
+    st.markdown(APP_CSS, unsafe_allow_html=True)
 
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
@@ -715,7 +682,7 @@ elif st.session_state.page == "SmallData":
                 title=f"{metric_label} vs Training Size",
                 xaxis_title="Training Samples", yaxis_title=metric_label,
                 yaxis_range=[-0.5, 1.0], hovermode="x unified",
-                template="plotly_white" if not st.session_state.dark_mode else "plotly_dark",
+                template="plotly_white",
                 height=450,
             )
             fig.add_hline(y=0, line_dash="dot", line_color="gray", opacity=0.5)
@@ -803,7 +770,7 @@ elif st.session_state.page == "Synthetic":
                 fig.add_trace(go.Histogram(x=df[col], name="Original", marker_color="#6366f1", opacity=0.7, legendgroup="orig", showlegend=(i == 0)), row=r, col=c)
                 if col in synth_df.columns:
                     fig.add_trace(go.Histogram(x=synth_df[col], name="Synthetic", marker_color="#ef4444", opacity=0.5, legendgroup="synth", showlegend=(i == 0)), row=r, col=c)
-            fig.update_layout(height=200 * rows, barmode="overlay", template="plotly_white" if not st.session_state.dark_mode else "plotly_dark")
+            fig.update_layout(height=200 * rows, barmode="overlay", template="plotly_white")
             st.plotly_chart(fig, use_container_width=True)
 
             st.markdown("<div class='section-header'>Correlation Comparison</div>", unsafe_allow_html=True)
