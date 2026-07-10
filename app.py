@@ -17,20 +17,19 @@ try:
 except ImportError:
     HOWSO_AVAILABLE = False
 
-MISTRAL_KEY = None
-key_from_file = os.environ.get("MISTRAL_API_KEY")
-if key_from_file:
-    MISTRAL_KEY = key_from_file
+LLM_KEYS = {}
+for var in ["MISTRAL_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"]:
+    val = os.environ.get(var)
+    if val:
+        LLM_KEYS[var] = val
 
-MISTRAL_AVAILABLE = False
-try:
-    from mistralai import Mistral
-    MISTRAL_AVAILABLE = True
-except ImportError:
-    pass
+for provider in ["Mistral", "OpenAI", "Anthropic"]:
+    key = f"llm_key_{provider}"
+    if key not in st.session_state:
+        st.session_state[key] = ""
 
-if "mistral_key_input" not in st.session_state:
-    st.session_state.mistral_key_input = ""
+if "llm_provider" not in st.session_state:
+    st.session_state.llm_provider = "Mistral"
 
 st.set_page_config(page_title="Howso AI Demo", layout="wide", initial_sidebar_state="expanded")
 
@@ -370,15 +369,19 @@ def run_small_data_compare(_df, ds_name):
 
 # ─── MISTRAL ─────────────────────────────────────────────────────────
 
-def get_mistral_key():
-    if MISTRAL_KEY:
-        return MISTRAL_KEY
+def get_llm_key(provider=None):
+    if provider is None:
+        provider = st.session_state.get("llm_provider", "Mistral")
+    env_key = f"{provider.upper()}_API_KEY"
+    if env_key in LLM_KEYS:
+        return LLM_KEYS[env_key]
     try:
-        return st.secrets["MISTRAL_API_KEY"]
+        return st.secrets[env_key]
     except Exception:
         pass
-    if st.session_state.mistral_key_input:
-        return st.session_state.mistral_key_input
+    key = st.session_state.get(f"llm_key_{provider}", "")
+    if key:
+        return key
     return None
 
 def build_llm_prompt(features_dict, dataset_info):
@@ -390,26 +393,54 @@ def build_llm_prompt(features_dict, dataset_info):
     else:
         return f"Given these features: {feat_str}, predict the {target} (0 or 1). Respond with ONLY 0 or 1, nothing else."
 
-def query_mistral(features_dict, dataset_info):
-    key = get_mistral_key()
-    if not key or not MISTRAL_AVAILABLE:
-        return None, "API key not configured"
+def query_llm(features_dict, dataset_info):
+    provider = st.session_state.get("llm_provider", "Mistral")
+    key = get_llm_key(provider)
+    if not key:
+        return None, f"No {provider} key configured"
+
+    prompt = build_llm_prompt(features_dict, dataset_info)
+
     try:
-        from mistralai import Mistral
-        client = Mistral(api_key=key)
-        prompt = build_llm_prompt(features_dict, dataset_info)
-        response = client.chat.complete(
-            model="mistral-small-latest",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
-            max_tokens=10,
-        )
-        text = response.choices[0].message.content.strip()
+        if provider == "Mistral":
+            from mistralai import Mistral
+            client = Mistral(api_key=key)
+            response = client.chat.complete(
+                model="mistral-small-latest",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1, max_tokens=10,
+            )
+            text = response.choices[0].message.content.strip()
+
+        elif provider == "OpenAI":
+            from openai import OpenAI
+            client = OpenAI(api_key=key)
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1, max_tokens=10,
+            )
+            text = response.choices[0].message.content.strip()
+
+        elif provider == "Anthropic":
+            from anthropic import Anthropic
+            client = Anthropic(api_key=key)
+            response = client.messages.create(
+                model="claude-3-5-haiku-latest",
+                max_tokens=10,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            text = response.content[0].text.strip()
+
+        else:
+            return None, f"Unknown provider: {provider}"
+
         try:
             val = float(text.split()[0].replace(",", ""))
             return val, None
         except ValueError:
             return None, f"Could not parse response: {text}"
+
     except Exception as e:
         return None, str(e)
 
@@ -437,12 +468,23 @@ with st.sidebar:
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
     st.markdown("<div style='font-size:0.75rem;opacity:0.5;'>Built with Howso Engine</div>", unsafe_allow_html=True)
 
-    mis_key = get_mistral_key()
-    if mis_key:
-        st.markdown("<div style='font-size:0.75rem;color:#10b981;'>Mistral AI: Connected</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.75rem;font-weight:600;margin-top:0.5rem;'>AI Provider</div>", unsafe_allow_html=True)
+    provider = st.selectbox("Provider", ["Mistral", "OpenAI", "Anthropic"], key="llm_provider_sel", label_visibility="collapsed")
+    st.session_state.llm_provider = provider
+
+    env_key_name = f"{provider.upper()}_API_KEY"
+    stored_key = LLM_KEYS.get(env_key_name, "")
+    session_key = st.session_state.get(f"llm_key_{provider}", "")
+    active_key = stored_key or session_key
+
+    if active_key:
+        st.markdown(f"<div style='font-size:0.75rem;color:#10b981;'>{provider}: Connected</div>", unsafe_allow_html=True)
     else:
-        st.markdown("<div style='font-size:0.75rem;opacity:0.5;'>Mistral AI: No key configured</div>", unsafe_allow_html=True)
-        st.session_state.mistral_key_input = st.text_input("Mistral API Key", type="password", key="mistral_input", help="Enter your Mistral API key for LLM comparison")
+        st.markdown(f"<div style='font-size:0.75rem;opacity:0.5;'>{provider}: No key</div>", unsafe_allow_html=True)
+        entered = st.text_input(f"{provider} API Key", type="password", key=f"llm_input_{provider}", label_visibility="collapsed", placeholder=f"Enter {provider} key...")
+        if entered:
+            st.session_state[f"llm_key_{provider}"] = entered
+            st.rerun()
 
     if not HOWSO_AVAILABLE:
         st.warning("Howso Engine not installed. Some features require `pip install howso-engine`.", icon="")
@@ -691,7 +733,7 @@ elif st.session_state.page == "Compare":
                     except Exception as e:
                         howso_pred = f"Error: {e}"
 
-            mistral_pred, mistral_error = query_mistral(input_vals, info)
+            mistral_pred, mistral_error = query_llm(input_vals, info)
 
             c_h, c_m = st.columns(2)
             with c_h:
@@ -722,9 +764,10 @@ elif st.session_state.page == "Compare":
                     st.markdown("<div style='font-size:1rem;opacity:0.5;'>Not available</div>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
 
+            provider_name = st.session_state.get("llm_provider", "Mistral")
             with c_m:
                 st.markdown("<div style='text-align:center;padding:1rem;background:#ef444410;border-radius:12px;border:1px solid #ef444430;'>", unsafe_allow_html=True)
-                st.markdown("<h3 style='color:#ef4444;margin:0;'>Mistral AI</h3>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='color:#ef4444;margin:0;'>{provider_name}</h3>", unsafe_allow_html=True)
                 st.markdown("<p style='font-size:0.8rem;opacity:0.6;'>Black-Box</p>", unsafe_allow_html=True)
                 if mistral_pred is not None:
                     st.markdown(f"<div style='font-size:2.5rem;font-weight:800;'>{mistral_pred:.2f}</div>", unsafe_allow_html=True)
@@ -732,7 +775,7 @@ elif st.session_state.page == "Compare":
                 elif mistral_error:
                     st.markdown(f"<div style='font-size:0.9rem;color:#ef4444;'>{mistral_error}</div>", unsafe_allow_html=True)
                 else:
-                    st.markdown("<div style='font-size:1rem;opacity:0.5;'>Configure Mistral key in sidebar</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='font-size:1rem;opacity:0.5;'>Configure {provider_name} key in sidebar</div>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
 
             st.markdown("<div class='insight-box' style='margin-top:1rem;'>", unsafe_allow_html=True)
