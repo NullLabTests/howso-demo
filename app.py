@@ -231,6 +231,9 @@ def run_small_data_compare(_df, ds_name):
 def get_llm_key(provider=None):
     if provider is None:
         provider = st.session_state.get("llm_provider", "Mistral")
+    session_key = st.session_state.get(f"llm_key_{provider}", "")
+    if session_key:
+        return session_key
     env_key = f"{provider.upper()}_API_KEY"
     if env_key in LLM_KEYS:
         return LLM_KEYS[env_key]
@@ -238,9 +241,6 @@ def get_llm_key(provider=None):
         return st.secrets[env_key]
     except Exception:
         pass
-    key = st.session_state.get(f"llm_key_{provider}", "")
-    if key:
-        return key
     return None
 
 def build_llm_prompt(features_dict, dataset_info):
@@ -315,7 +315,7 @@ with st.sidebar:
     nav_items = [
         ("Overview", "Home"),
         ("Predict & Analyze", "Predict"),
-        ("Howso vs AI", "Compare"),
+        ("Howso vs LLM", "Compare"),
         ("Small Data", "SmallData"),
         ("Synthetic Data", "Synthetic"),
     ]
@@ -371,11 +371,11 @@ if st.session_state.page == "Overview":
     with c2:
         st.markdown("""
         <div class="card">
-            <h3>Howso vs AI</h3>
+            <h3>Howso vs LLM</h3>
             <p>Compare Howso's transparent, attributable predictions against a black-box LLM. See why attribution matters.</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Howso vs AI", key="home_compare", use_container_width=True):
+        if st.button("Howso vs LLM", key="home_compare", use_container_width=True):
             st.session_state.page = "Compare"
             st.rerun()
     with c3:
@@ -392,7 +392,7 @@ if st.session_state.page == "Overview":
     with col_a:
         st.markdown("""
         <div style="padding:1rem;">
-            <h4 style="color:#ef4444;">Black-Box AI</h4>
+            <h4 style="color:#ef4444;">Black-Box LLM</h4>
             <ul style="opacity:0.7;">
                 <li>You get an answer, but no <em>why</em></li>
                 <li>Cannot audit or debug decisions</li>
@@ -535,8 +535,8 @@ elif st.session_state.page == "Predict":
             st.metric("Class Balance", f"{df[info['target']].mean()*100:.0f}% positive")
 
 elif st.session_state.page == "Compare":
-    st.markdown("<h1>Howso vs AI</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='opacity:0.6;margin-bottom:1.5rem;'>See the critical difference between attributable and black-box predictions. Howso explains <em>why</em>; AI just answers.</p>", unsafe_allow_html=True)
+    st.markdown("<h1>Howso vs LLM</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='opacity:0.6;margin-bottom:1.5rem;'>See the critical difference between attributable and black-box predictions. Howso explains <em>why</em>; LLMs just answer.</p>", unsafe_allow_html=True)
 
     ds_name = st.selectbox("Dataset", list(DATASETS.keys()), key="comp_ds")
     info = DATASETS[ds_name]
@@ -627,7 +627,7 @@ elif st.session_state.page == "Compare":
             with c_m:
                 st.markdown("<div style='text-align:center;padding:1rem;background:#ef444410;border-radius:12px;border:1px solid #ef444430;'>", unsafe_allow_html=True)
                 st.markdown(f"<h3 style='color:#ef4444;margin:0;'>{provider_name}</h3>", unsafe_allow_html=True)
-                st.markdown("<p style='font-size:0.8rem;opacity:0.6;'>Black-Box</p>", unsafe_allow_html=True)
+                st.markdown("<p style='font-size:0.8rem;opacity:0.6;'>Black-Box LLM</p>", unsafe_allow_html=True)
                 if mistral_pred is not None:
                     st.markdown(f"<div style='font-size:2.5rem;font-weight:800;'>{mistral_pred:.2f}</div>", unsafe_allow_html=True)
                     st.markdown("<div style='font-size:0.8rem;opacity:0.6;margin-top:0.5rem;'>No attribution available. Cannot trace or audit.</div>", unsafe_allow_html=True)
